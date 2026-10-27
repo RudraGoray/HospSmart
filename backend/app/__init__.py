@@ -1,0 +1,1 @@
+"""HospSmart AI backend."""
