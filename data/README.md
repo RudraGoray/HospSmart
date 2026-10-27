@@ -21,7 +21,7 @@ Unsupported columns are inspected but excluded from ML. Rename unsupported heade
 ## Cleaning policies
 
 - Blank, NA, null and similar tokens become missing. Categories are whitespace-normalized and title-cased.
-- Bangalore/Bombay/Madras/Calcutta map to Bengaluru/Mumbai/Chennai/Kolkata. Public/Govt and Pvt aliases map to Government and Private. Review and extend the explicit maps in backend/app/data.py for your source.
+- Bangalore/Bombay/Madras/Calcutta map to Bengaluru/Mumbai/Chennai/Kolkata. Public/Govt and Pvt aliases map to Government and Private. Review and extend the explicit maps in app/data.py for your source.
 - Beds accept positive whole numbers, comma separators and trailing beds. Zero, negative values, ranges and counts over 100,000 become missing. The upper limit is an explicit plausibility policy.
 - Ratings accept numbers and value/denominator text. Negative and malformed ratings, or explicit values exceeding the denominator, become missing. Multiple explicit denominators stop import. Without a denominator the official scale is unknown; only observed min/max is shown. Implicitly mixed scales require manual review.
 - Specialties split at commas, semicolons, pipes and slashes. Quote CSV fields containing commas. No medical synonym inference is applied.

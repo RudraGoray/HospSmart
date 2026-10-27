@@ -1,149 +1,162 @@
-# HospSmart AI
+# HospSmart AI - Streamlit edition
 
-A local, full-stack educational hospital intelligence application. React + Vite + TypeScript + Tailwind + Recharts + Lucide + React Router frontend; Python + FastAPI + pandas + scikit-learn backend. No API keys or paid services.
+A standalone Streamlit conversion of HospSmart AI. The Python data cleaning,
+recommendation engine and random-forest model design are reused from the supplied
+full-stack project. The interface is rebuilt with native Streamlit widgets.
+No Node.js, frontend build, API key, FastAPI process or reverse proxy is required.
 
-## Delivery status — read first
+## Deploy to Streamlit Community Cloud
 
-**No hospital dataset was attached to the supplied specification.** This package deliberately contains no hospital records, trained production models, or invented evaluation scores. The app starts with clear empty states. Import your CSV and run training to enable records, recommendations and supported prediction models. Synthetic records exist only in automated tests and are never loaded by the application.
+1. Extract this ZIP. Open the `hospsmart-streamlit` folder.
+2. Create a GitHub repository and upload **the contents of that folder**. At the
+   repository root you should see `streamlit_app.py`, `requirements.txt`, `app/`,
+   `data/`, `models/`, and `.streamlit/config.toml`. Upload extracted files, not the ZIP.
+   Ensure the hidden `.streamlit` folder is included.
+3. Visit https://share.streamlit.io and sign in with GitHub. Click **Create app**
+   and choose the existing repository, branch, and main file `streamlit_app.py`.
+4. Under **Advanced settings**, choose **Python 3.12**. Leave secrets empty.
+5. Click **Deploy**. After startup, open **Data & models** and load your CSV.
+6. Click **Train models on current data** to enable eligible prediction models.
+   The other pages work without trained models once a dataset is loaded.
 
-All eight pages are implemented: landing, dashboard, explorer/detail, recommendations, rating lab, NABH lab, comparison and methodology. Models are withheld when the dataset fails validation requirements. This state is visible in the app.
+If you uploaded the outer folder itself, use
+`hospsmart-streamlit/streamlit_app.py` as the main file path instead. The simplest
+layout is the repository-root layout above.
 
-## Requirements
+Official deployment documentation:
+https://docs.streamlit.io/deploy/streamlit-community-cloud/deploy-your-app/deploy
+Dependency documentation:
+https://docs.streamlit.io/deploy/streamlit-community-cloud/deploy-your-app/app-dependencies
 
-- Python 3.11 or 3.12 (verified with 3.12).
-- Node.js 22.12+ and npm (verified with Node 24). See https://vite.dev/guide/ for Vite's runtime requirements.
-- Two terminal windows: backend on 8000, frontend on 5173.
+## Run locally
 
-Extract the ZIP before running commands. Start from the extracted hospsmart-ai folder.
+Use Python 3.12 (the version used for verification). From the extracted folder:
 
-## Windows PowerShell setup
-
-First terminal:
-
-~~~powershell
-cd backend
+```powershell
 py -3.12 -m venv .venv
-.\.venv\Scripts\python.exe -m pip install -r requirements-lock.txt
-~~~
+.\.venv\Scripts\python.exe -m pip install -r requirements.txt
+.\.venv\Scripts\python.exe -m streamlit run streamlit_app.py
+```
 
-Inspect and import your own CSV, replacing the example path:
+macOS/Linux equivalent:
 
-~~~powershell
-.\.venv\Scripts\python.exe -m scripts.inspect_dataset "C:\path\to\hospitals.csv"
-.\.venv\Scripts\python.exe -m scripts.import_dataset "C:\path\to\hospitals.csv"
-.\.venv\Scripts\python.exe -m scripts.train
-.\.venv\Scripts\python.exe -m uvicorn app.main:app --reload --host 127.0.0.1 --port 8000
-~~~
-
-You can start the backend without data to view the empty-state interface. Importing and training are local terminal operations. Restart the backend after either operation; dataset and models are loaded once per process.
-
-Second terminal, from the extracted project root:
-
-~~~powershell
-cd frontend
-npm ci
-npm run dev
-~~~
-
-Open **http://localhost:5173** (or Vite's printed Local URL). API documentation: **http://127.0.0.1:8000/docs**. Health: **http://127.0.0.1:8000/api/health**.
-
-To replace data, run the importer with --replace. It archives the previous raw CSV before replacement:
-
-~~~powershell
-.\.venv\Scripts\python.exe -m scripts.import_dataset "C:\path\to\new-hospitals.csv" --replace
-.\.venv\Scripts\python.exe -m scripts.train
-~~~
-
-The original input file is never edited. Archived imports live in data/raw/archive-<SHA256>.csv. Dataset fingerprint mismatches disable stale models until retraining and restart.
-
-## macOS / Linux setup
-
-~~~bash
-cd backend
-python3 -m venv .venv
+```bash
+python3.12 -m venv .venv
 source .venv/bin/activate
-python -m pip install -r requirements-lock.txt
-python -m scripts.inspect_dataset /path/to/hospitals.csv
-python -m scripts.import_dataset /path/to/hospitals.csv
-python -m scripts.train
-uvicorn app.main:app --reload --host 127.0.0.1 --port 8000
-~~~
+python -m pip install -r requirements.txt
+python -m streamlit run streamlit_app.py
+```
 
-In a second terminal: cd frontend, then npm ci and npm run dev.
+Open the local URL printed by Streamlit, normally http://localhost:8501.
 
-## CSV contract
+## Dataset and initial state
 
-Only a hospital name column is mandatory to import. Optional features remain unavailable when absent. Preferred headers:
+**No real hospital data or trained models were included in the source ZIP.**
+This app deploys and starts with an honest empty state. It includes a blank
+CSV template, not invented hospital records or evaluation scores.
 
-~~~csv
+Upload a UTF-8 CSV on **Data & models**. Only a hospital name is mandatory.
+Recommended headers:
+
+```csv
 Hospital Name,City,Hospital Type,Number of Beds,Medical Specialties,Hospital Rating,NABH Accreditation Status
-~~~
+```
 
-See data/README.md for aliases, cleaning and rating-scale caveats. data/hospitals-template.csv has headers only; it is not a dataset. Missing data remains visible; unknown accreditation is never replaced by a prediction.
+Separate specialties with semicolons, e.g. `Cardiology;Neurology`. Quote any CSV
+field containing a comma. See `data/README.md` for header aliases, missing-value
+rules, normalization and rating-scale handling. The importer preserves original
+bytes, reports cleaning decisions, and rejects ambiguous column mappings or
+mixed explicit rating denominators.
 
-## Train and evaluate
+Limits: CSV size 10 MB, at most 20,000 source rows, and at most 5,000 cleaned
+hospitals for in-app training. Larger training runs can use the offline script.
 
-From backend with the virtual environment active:
+## Keep a dataset and models available after restart
 
-~~~bash
-python -m scripts.inspect_dataset /path/to/hospitals.csv
-python -m scripts.import_dataset /path/to/hospitals.csv
-python -m scripts.train
-python -m scripts.evaluate_recommendations
-~~~
+Uploads, comparison selections, estimates and in-app models are specific to the
+current Streamlit session. They are not saved to a shared database or committed
+to GitHub. A refresh, new visitor, cloud sleep/restart, or redeployment may require
+uploading and training again.
 
-Without activation on Windows, replace python with .\.venv\Scripts\python.exe. Training executes both prediction tasks and recommendation proxy evaluation. Alternate paths are supported with --dataset and --models. To serve alternate paths, set optional process variables HOSPSMART_DATASET and HOSPSMART_MODELS before starting FastAPI. No environment file is needed for default setup.
+For a fixed dataset available to every visitor:
 
-Generated in models/ when training succeeds:
+1. Put the exact original CSV at `data/raw/hospitals.csv` in your repository.
+2. Optionally train models before deployment, from the project root:
 
-- rating.joblib and nabh.joblib: fitted preprocessing, forest and training schema. A model file is absent when validation withholds that task.
-- metrics.json: measured test metrics, dummy baselines, training-only CV, feature importance, proxy metrics and reproducibility configuration.
-- dataset_report.json: cleaning and inspection report.
-- feature_schemas.json: exact supported features and training categories.
-- rating_evaluation.json and nabh_evaluation.json: held-out IDs, actual values, predictions and baseline outputs.
+   ```bash
+   python -m scripts.train --dataset data/raw/hospitals.csv
+   ```
 
-Models use seed 42, an 80/20 split, 200 trees and minimum leaf size 2. Imputation, encoding and specialty vocabulary fit within training folds only. City and identifiers are excluded. Repeated normalized names trigger group-aware splitting. Saved models remain fitted on the training split so test metrics describe the model actually served. New training runs replace old artifacts; copy models/ to retain a historical run.
+3. Commit the CSV and generated `models/` files along with the application. Use
+   the same Python and pinned scikit-learn dependencies during training and deployment.
+4. Alternatively, train in the app, download **trained model files**, and extract
+   that ZIP into the project root. The files land inside `models/`. Download the
+   active original CSV and save it as `data/raw/hospitals.csv`, then commit both.
 
-Minimum policy: 20 known-target rows and two distinct target values. Classification additionally needs five known examples per class and every class in train and test. Three-fold training-only CV runs when valid. Unknown NABH labels are excluded from classification. Review docs/ML_REPORT.md before interpreting results.
+Model fingerprints must match the exact CSV bytes. An edited CSV or different
+scikit-learn version disables bundled models until retraining. Load only trusted
+model files produced by this project; the app does not accept model uploads.
+Bundled CSV data is visible to all visitors who can access the app.
 
-## Tests and production build
+## Included screens
 
-From backend:
+- Home: entry point and current data/model status.
+- Dashboard: city/type/accreditation/rating charts, top recorded ratings, data quality.
+- Hospital explorer: search, filters, sorting, paging, record export, profiles.
+- Recommendations: mandatory constraints, optional preferences, weighted point breakdown.
+- Rating lab: regression estimate using available model-supported features.
+- NABH lab: estimated label and uncalibrated forest probabilities.
+- Compare hospitals: up to three recorded hospital profiles side by side.
+- Data & models: upload, validation, session reset, training, metrics and model downloads.
+- Methodology: cleaning, leakage controls, model evaluation and limitations.
 
-~~~powershell
-.\.venv\Scripts\python.exe -m pytest
-~~~
+## Model policy
 
-Or pytest with the virtual environment active. From frontend:
+Models require at least 20 known-target rows and two distinct target values.
+NABH classification also needs at least five examples per class, with all classes
+in both train and test. Tasks that cannot satisfy the policy stay unavailable
+with an explanation; this is not a deployment error.
 
-~~~bash
-npm test
-npm run build
-npm run preview
-~~~
+Training retains seed 42, an 80/20 holdout, 200 trees, minimum leaf size 2,
+group-aware splitting for repeated names, dummy baselines, and valid training-only
+three-fold cross validation. Models remain fitted on the training partition.
+Single-worker forests limit CPU pressure on shared hosting. There is no claim
+that the model is clinically validated or that it outperforms its dummy baseline.
 
-Preview serves the production frontend and proxies /api to local FastAPI. A verified frontend/dist build is included for convenience. Source is the editable deliverable. For external hosting, serve frontend and reverse-proxy /api to FastAPI on the same origin; configure SPA fallback to index.html. This local project is not configured as a public multi-user service.
+The original recommendation normalization was corrected so missing numeric values
+receive zero points even when all known values are identical.
 
-Tests generate clearly labeled synthetic data in temporary directories to verify software behavior, including actual sklearn training and prediction APIs. These checks are not real-dataset or clinical validation. See docs/VERIFICATION.md.
+## Verification
 
-## Demonstration sequence
+```bash
+python -m pip install -r requirements-dev.txt
+python -m pytest
+```
 
-1. Inspect and import your actual dataset. Review missing values and source categories.
-2. Train and review withheld models and measured evaluations.
-3. Open Overview for charts and data quality; filter Explorer and view profiles.
-4. Add up to three hospitals and open Compare.
-5. Run Recommendations and inspect required constraints, component points and rank order.
-6. Try available prediction labs and compare each forest with its dummy baseline.
-7. Open Models & Methodology for provenance, CV, leakage controls and limitations.
+Tests use clearly labeled synthetic records only in temporary directories.
+They verify application behavior, not hospital quality or clinical validity.
+See `VERIFICATION.md` for the checks performed for this delivery.
 
-## Documentation
+## Project layout
 
-- docs/ARCHITECTURE.md: structure and request flow.
-- docs/API.md: endpoints, validation, errors and examples.
-- docs/ML_REPORT.md: college-report explanations.
-- docs/LIMITATIONS.md: limitations and future improvements.
-- docs/VERIFICATION.md: actual software checks performed.
+```text
+streamlit_app.py           Streamlit entrypoint and screens
+requirements.txt          Pinned runtime dependencies
+.streamlit/config.toml    Theme and 10 MB upload limit
+app/                      Cleaning, features, recommendations, schemas, ML, session services
+scripts/train.py          Optional offline training
+models/                   Optional trusted pre-trained artifacts
+data/raw/hospitals.csv    Optional bundled CSV (not supplied)
+data/hospitals-template.csv
+README.md                 Deployment and operation instructions
+VERIFICATION.md           Verification results and limits
+tests/                    Temporary-fixture software tests
+docs/                     ML report and limitations
+```
 
-## Medical disclaimer
+## Scope
 
-HospSmart AI is an educational hospital discovery and machine learning demonstration tool. Predictions and match scores are estimates based on the available dataset and are not guarantees of hospital quality, accreditation, clinical outcomes, or suitability for a particular medical condition. Verify current hospital services and accreditation through official sources before making healthcare decisions.
+Educational hospital discovery and ML demonstration. Predictions and match scores
+are not guarantees of hospital quality, accreditation, treatment success, or
+suitability for a medical condition. Verify services and accreditation with
+official sources. The original full-stack ZIP is unchanged.

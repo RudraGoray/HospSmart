@@ -1,4 +1,5 @@
 import numpy as np
+import pandas as pd
 from sklearn.preprocessing import MultiLabelBinarizer
 from sklearn.metrics.pairwise import cosine_similarity
 
@@ -21,7 +22,7 @@ def recommend(df, request):
     similarity = cosine_similarity(mlb.transform(subset.specialties), mlb.transform([request.specialties])).ravel() if request.specialties else np.zeros(len(subset))
     def norm(values, all_values):
         lo, hi = all_values.min(), all_values.max()
-        return values.fillna(lo).map(lambda x: 0.0 if not np.isfinite(lo) or not np.isfinite(hi) else (float(x-lo)/(hi-lo) if hi > lo else 1.0)).fillna(0).to_numpy()
+        return values.map(lambda x: 0.0 if pd.isna(x) or not np.isfinite(lo) or not np.isfinite(hi) else (float(x-lo)/(hi-lo) if hi > lo else 1.0)).to_numpy()
     parts = {'specialty': similarity, 'rating': norm(subset.rating, df.rating), 'capacity': norm(subset.beds, df.beds),
              'type': (subset.hospital_type == request.hospital_type).astype(float).to_numpy(),
              'accreditation': (subset.nabh == 'Accredited').astype(float).to_numpy()}

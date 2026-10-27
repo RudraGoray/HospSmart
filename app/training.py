@@ -60,7 +60,7 @@ def train_one(df, target, model_dir):
     weights = None
     if target == 'nabh' and max(data.iloc[tr][target].value_counts()) / min(data.iloc[tr][target].value_counts()) >= 2:
         weights = 'balanced'
-    estimator = RandomForestRegressor(n_estimators=200, min_samples_leaf=2, random_state=SEED, n_jobs=-1) if target == 'rating' else RandomForestClassifier(n_estimators=200, min_samples_leaf=2, class_weight=weights, random_state=SEED, n_jobs=-1)
+    estimator = RandomForestRegressor(n_estimators=200, min_samples_leaf=2, random_state=SEED, n_jobs=1) if target == 'rating' else RandomForestClassifier(n_estimators=200, min_samples_leaf=2, class_weight=weights, random_state=SEED, n_jobs=1)
     model = pipeline(cols, estimator).fit(X.iloc[tr], y.iloc[tr])
     dummy = pipeline(cols, DummyRegressor(strategy='mean') if target == 'rating' else DummyClassifier(strategy='prior')).fit(X.iloc[tr], y.iloc[tr])
     pred = model.predict(X.iloc[te])
